@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="sr" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -403,9 +403,9 @@ const screenEl=$('#screen');
 const SW=()=>screenEl.clientWidth, SH=()=>screenEl.clientHeight;
 const RES=76; // space reserved at the bottom for the taskbar
 const P=e=>{const r=screenEl.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
-const DAYS=['nedelja','ponedeljak','utorak','sreda','četvrtak','petak','subota'];
-const MONTHS=['januar','februar','mart','april','maj','jun','jul','avgust','septembar','oktobar','novembar','decembar'];
-const fmtDate=ts=>{const d=new Date(ts);return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}. ${pad(d.getHours())}:${pad(d.getMinutes())}`};
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const fmtDate=ts=>{const d=new Date(ts);return `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}, ${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`};
 const norm=s=>String(s).toLowerCase().replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const hexRgb=h=>{const m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h)||[0,'00','00','00'];return[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]};
 
@@ -458,11 +458,11 @@ const fileIcon=n=>n.t==='d'?I.folder:(n.m&&n.m.startsWith('image/')?I.image:I.fi
 
 /* ---------- settings state ---------- */
 const WALLS={
-  bloom:{n:'Cvet',base:'linear-gradient(160deg,#07102e,#150a33)',w1:'#2f7bff',w2:'#a43bff',w3:'#44d3ff'},
-  zora:{n:'Zora',base:'linear-gradient(170deg,#2a0f3d,#4a1236)',w1:'#ff7a45',w2:'#ff3f8e',w3:'#ffc15e'},
-  suma:{n:'Šuma',base:'linear-gradient(160deg,#04201f,#06121c)',w1:'#1fbf8f',w2:'#2a7fff',w3:'#b6ff7a'},
-  ugalj:{n:'Ugalj',base:'linear-gradient(160deg,#14161b,#0c0d11)',w1:'#4a5266',w2:'#2d3345',w3:'#7a859c'},
-  dan:{n:'Dan',base:'linear-gradient(170deg,#dff0ff,#eef0ff)',w1:'#7cc4ff',w2:'#c9a8ff',w3:'#ffd1e6'}
+  bloom:{n:'Bloom',base:'linear-gradient(160deg,#07102e,#150a33)',w1:'#2f7bff',w2:'#a43bff',w3:'#44d3ff'},
+  zora:{n:'Dawn',base:'linear-gradient(170deg,#2a0f3d,#4a1236)',w1:'#ff7a45',w2:'#ff3f8e',w3:'#ffc15e'},
+  suma:{n:'Forest',base:'linear-gradient(160deg,#04201f,#06121c)',w1:'#1fbf8f',w2:'#2a7fff',w3:'#b6ff7a'},
+  ugalj:{n:'Charcoal',base:'linear-gradient(160deg,#14161b,#0c0d11)',w1:'#4a5266',w2:'#2d3345',w3:'#7a859c'},
+  dan:{n:'Day',base:'linear-gradient(170deg,#dff0ff,#eef0ff)',w1:'#7cc4ff',w2:'#c9a8ff',w3:'#ffd1e6'}
 };
 const ACCENTS=['#4c8dff','#7c5cff','#e5489b','#ff6b4a','#f2a31b','#22b573','#10a5c9','#8a94a8'];
 const DEFAULTS={theme:'dark',accent:'#4c8dff',wall:'bloom',align:'center',brightness:100,volume:60,night:false,wifi:true,bt:true,air:false,saver:false};
@@ -516,7 +516,7 @@ function syncBind(root){
 }
 
 /* ---------- virtual file system ---------- */
-const DESKTOP='/Radna površina',DOCS='/Dokumenti',DOWNL='/Preuzimanja',PICS='/Slike',MUSIC='/Muzika',BIN='/Korpa';
+const DESKTOP='/Desktop',DOCS='/Documents',DOWNL='/Downloads',PICS='/Pictures',MUSIC='/Music',BIN='/Recycle Bin';
 const now=()=>Date.now();
 const D=ch=>{const o=Object.create(null);Object.assign(o,ch||{});return{t:'d',ch:o,d:now()}};
 const F=(c,m)=>({t:'f',c:c==null?'':c,m:m||'text/plain',d:now()});
@@ -551,18 +551,18 @@ function restoreFromBin(p){
   addNode(dest,uniq(dest,baseOf(p)),n);fsChanged();
 }
 async function deletePath(p){
-  if(protectedPath(p)){await info('Nije moguće obrisati','Ovo je sistemski folder i ne može se obrisati.');return false}
+  if(protectedPath(p)){await info('Can’t delete','This is a system folder and can’t be deleted.');return false}
   const nm=baseOf(p);
-  if(inBin(p)){if(!(await ask('Trajno brisanje',`Trajno obrisati „${nm}“? Ovo se ne može poništiti.`,'Obriši',true)))return false;removeNode(p);fsChanged();return true}
-  if(!(await ask('Premesti u korpu',`Premestiti „${nm}“ u korpu?`,'Premesti')))return false;
+  if(inBin(p)){if(!(await ask('Delete permanently',`Permanently delete “${nm}”? This can’t be undone.`,'Delete',true)))return false;removeNode(p);fsChanged();return true}
+  if(!(await ask('Move to Recycle Bin',`Move “${nm}” to the Recycle Bin?`,'Move')))return false;
   moveToBin(p);return true;
 }
 async function renamePath(p){
-  if(protectedPath(p)){await info('Nije moguće preimenovati','Sistemski folderi se ne mogu preimenovati.');return null}
-  const old=baseOf(p),nm=await promptName('Preimenuj','Novi naziv:',old);
+  if(protectedPath(p)){await info('Can’t rename','System folders can’t be renamed.');return null}
+  const old=baseOf(p),nm=await promptName('Rename','New name:',old);
   if(!nm||nm===old)return null;
   const dir=dirOf(p),par=get(dir);
-  if(par&&nm in par.ch){await info('Naziv već postoji',`U ovom folderu već postoji „${nm}“.`);return null}
+  if(par&&nm in par.ch){await info('Name already exists',`This folder already contains “${nm}”.`);return null}
   const n=removeNode(p);if(!n)return null;
   addNode(dir,nm,n);fsChanged();return join(dir,nm);
 }
@@ -587,13 +587,13 @@ function openPath(p){
     if(ex){focusWin(ex);return}
     openApp('notepad',{path:p});return;
   }
-  info('Nema aplikacije','Za ovaj tip datoteke trenutno nije instalirana nijedna aplikacija.');
+  info('No app found','No app is installed that can open this type of file.');
 }
 const kindLabel=(name,n)=>{
-  if(n.t==='d')return 'Folder';
-  if(n.m&&n.m.startsWith('image/'))return (name.split('.').pop()||'').toUpperCase()+' slika';
+  if(n.t==='d')return 'File folder';
+  if(n.m&&n.m.startsWith('image/'))return (name.split('.').pop()||'').toUpperCase()+' image';
   const e=(name.split('.').pop()||'').toLowerCase();
-  return e==='txt'?'Tekstualna datoteka':(name.includes('.')?e.toUpperCase()+' datoteka':'Datoteka');
+  return e==='txt'?'Text document':(name.includes('.')?e.toUpperCase()+' file':'File');
 };
 const sizeLabel=n=>{
   if(n.t==='d')return '';
@@ -602,17 +602,17 @@ const sizeLabel=n=>{
 };
 function seedFS(){
   [DESKTOP,DOCS,DOWNL,PICS,MUSIC,BIN].forEach(ensureDir);
-  addNode(DESKTOP,'Dobrodošli.txt',F('Dobrodošli u Windows 12!\n\nOvo je veb simulacija operativnog sistema. Isprobajte:\n\n- Start meni (dugme u sredini trake) i pretragu\n- Istraživač, Beležnicu, Kalkulator, Paint i Terminal\n- Brza podešavanja (ikone Wi-Fi/zvuk desno dole) i kalendar (sat)\n- Prevlačenje prozora do ivice ekrana za pripajanje\n- Desni klik na radnu površinu\n\nSve datoteke koje napravite čuvaju se dok je stranica otvorena.\n'));
-  addNode(DESKTOP,'Projekti',D({}));
-  addNode(DESKTOP+'/Projekti','ideje.txt',F('1. Napraviti aplikaciju za beleške\n2. Naučiti nešto novo svake nedelje\n3. Organizovati fotografije\n'));
-  addNode(DOCS,'Beleške.txt',F('Spisak za kupovinu:\n- hleb\n- kafa\n- jabuke\n'));
-  addNode(DOCS,'Plan puta.txt',F('Dan 1: dolazak i šetnja po centru\nDan 2: izlet do jezera\nDan 3: povratak\n'));
-  addNode(DOCS,'Posao',D({}));
-  addNode(DOWNL,'instalacija.log',F('[OK] Preuzimanje završeno\n[OK] Provera potpisa\n[OK] Instalacija uspešna\n'));
-  addNode(MUSIC,'Playlista.txt',F('Jutarnja energija\nFokus\nVečernji mir\n'));
+  addNode(DESKTOP,'Welcome.txt',F('Welcome to Windows 12!\n\nThis is a web simulation of an operating system. Try out:\n\n- The Start menu (button in the middle of the taskbar) and search\n- File Explorer, Notepad, Calculator, Paint and Terminal\n- Quick settings (Wi-Fi/volume icons, bottom right) and the calendar (clock)\n- Dragging a window to a screen edge to snap it\n- Right-clicking the desktop\n\nFiles you create are kept while this page stays open.\n'));
+  addNode(DESKTOP,'Projects',D({}));
+  addNode(DESKTOP+'/Projects','ideas.txt',F('1. Build a note-taking app\n2. Learn something new every week\n3. Organize photos\n'));
+  addNode(DOCS,'Notes.txt',F('Shopping list:\n- bread\n- coffee\n- apples\n'));
+  addNode(DOCS,'Trip plan.txt',F('Day 1: arrival and a walk downtown\nDay 2: trip to the lake\nDay 3: return home\n'));
+  addNode(DOCS,'Work',D({}));
+  addNode(DOWNL,'install.log',F('[OK] Download complete\n[OK] Signature verified\n[OK] Installation successful\n'));
+  addNode(MUSIC,'Playlist.txt',F('Morning energy\nFocus\nEvening calm\n'));
   try{
     const mk=(c1,c2,c3)=>{const c=document.createElement('canvas');c.width=640;c.height=400;const x=c.getContext('2d');if(!x)return null;const g=x.createLinearGradient(0,0,0,400);g.addColorStop(0,c1);g.addColorStop(1,c2);x.fillStyle=g;x.fillRect(0,0,640,400);x.fillStyle=c3;x.beginPath();x.arc(470,150,56,0,7);x.fill();x.fillStyle='rgba(10,14,30,.55)';x.beginPath();x.moveTo(0,400);x.lineTo(0,300);x.lineTo(140,210);x.lineTo(250,290);x.lineTo(380,190);x.lineTo(520,300);x.lineTo(640,240);x.lineTo(640,400);x.closePath();x.fill();return c.toDataURL('image/png')};
-    [['Zalazak.png','#ff9a5a','#5b2a86','#ffe3a3'],['Planine.png','#6fb7ff','#1d3a7a','#ffffff'],['Noć.png','#101a45','#2a1b52','#f1f1d0']].forEach(a=>{const u=mk(a[1],a[2],a[3]);if(u)addNode(PICS,a[0],F(u,'image/png'))});
+    [['Sunset.png','#ff9a5a','#5b2a86','#ffe3a3'],['Mountains.png','#6fb7ff','#1d3a7a','#ffffff'],['Night.png','#101a45','#2a1b52','#f1f1d0']].forEach(a=>{const u=mk(a[1],a[2],a[3]);if(u)addNode(PICS,a[0],F(u,'image/png'))});
   }catch(e){console.warn('seed images skipped',e)}
 }
 
@@ -629,7 +629,7 @@ function dialog(o){
       if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done({v:'cancel'})}
       else if(e.key==='Enter'&&primaryBtn&&!(document.activeElement&&document.activeElement.tagName==='BUTTON')){e.preventDefault();e.stopPropagation();primaryBtn.click()}
     }
-    (o.buttons||[{l:'U redu',v:'ok',primary:true}]).forEach(b=>{
+    (o.buttons||[{l:'OK',v:'ok',primary:true}]).forEach(b=>{
       const bt=el('button','btn'+(b.primary?' pri':'')+(b.danger?' dng':''),esc(b.l));
       bt.onclick=()=>{
         if(b.primary&&o.validate&&inp){const e=o.validate(inp.value);if(e){err.textContent=e;inp.focus();return}}
@@ -642,14 +642,14 @@ function dialog(o){
     requestAnimationFrame(()=>{wrap.classList.add('in');const f=inp||btns.lastElementChild;if(f)f.focus();if(inp&&typeof inp.select==='function')inp.select()});
   });
 }
-const ask=async(title,msg,ok='U redu',danger)=>(await dialog({title,msg,buttons:[{l:'Otkaži',v:'cancel'},{l:ok,v:'ok',primary:true,danger:!!danger}]})).v==='ok';
+const ask=async(title,msg,ok='OK',danger)=>(await dialog({title,msg,buttons:[{l:'Cancel',v:'cancel'},{l:ok,v:'ok',primary:true,danger:!!danger}]})).v==='ok';
 const info=(title,msg)=>dialog({title,msg});
 async function promptName(title,msg,value){
-  const r=await dialog({title,msg,input:{value},validate:v=>validName(v)?'':'Naziv ne sme biti prazan niti sadržati znakove \\ / : * ? " < > |',buttons:[{l:'Otkaži',v:'cancel'},{l:'U redu',v:'ok',primary:true}]});
+  const r=await dialog({title,msg,input:{value},validate:v=>validName(v)?'':'A name can’t be empty or contain any of these characters: \\ / : * ? " < > |',buttons:[{l:'Cancel',v:'cancel'},{l:'OK',v:'ok',primary:true}]});
   return r.v==='ok'?validName(r.value):null;
 }
 async function choose(title,msg,options){
-  const r=await dialog({title,msg,select:options,buttons:[{l:'Otkaži',v:'cancel'},{l:'Otvori',v:'ok',primary:true}]});
+  const r=await dialog({title,msg,select:options,buttons:[{l:'Cancel',v:'cancel'},{l:'Open',v:'ok',primary:true}]});
   return r.v==='ok'?r.value:null;
 }
 
@@ -749,7 +749,7 @@ function createWin(app,opts){
   const x=clamp(Math.round((sw-w0)/2)-60+off,0,Math.max(0,sw-w0)),y=clamp(Math.round((sh-h0)/2)-30+off,0,Math.max(0,sh-h0));
   const win={id:++uid,app:app.id,mode:'normal',min:false,restore:null,x,y,w:w0,h:h0,cleanups:[],title:app.name,z:0};
   const node=el('div','win opening');
-  node.innerHTML=`<div class="tb"><span class="ti">${app.icon}</span><span class="tt"></span><span class="ctl"><button class="c-min" aria-label="Umanji">${I.min}</button><button class="c-max" aria-label="Uvećaj">${I.max}</button><button class="c-cl" aria-label="Zatvori">${I.close}</button></span></div><div class="wb"></div>`+['n','s','e','w','ne','nw','se','sw'].map(d=>`<i class="rz" data-d="${d}"></i>`).join('');
+  node.innerHTML=`<div class="tb"><span class="ti">${app.icon}</span><span class="tt"></span><span class="ctl"><button class="c-min" aria-label="Minimize">${I.min}</button><button class="c-max" aria-label="Maximize">${I.max}</button><button class="c-cl" aria-label="Close">${I.close}</button></span></div><div class="wb"></div>`+['n','s','e','w','ne','nw','se','sw'].map(d=>`<i class="rz" data-d="${d}"></i>`).join('');
   win.el=node;win.body=$('.wb',node);
   const tt=$('.tt',node),tb=$('.tb',node);
   tt.textContent=win.title;
@@ -832,7 +832,7 @@ function createWin(app,opts){
   try{app.init(win,opts)}
   catch(err){
     console.error(err);
-    win.body.innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted)">Aplikacija „${esc(app.name)}“ je naišla na problem.<br>Zatvorite prozor i pokušajte ponovo.</div>`;
+    win.body.innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted)">“${esc(app.name)}” ran into a problem.<br>Close the window and try again.</div>`;
   }
   return win;
 }
@@ -849,10 +849,10 @@ function explorerApp(win,opts){
   let path=opts.path&&get(opts.path)&&get(opts.path).t==='d'?opts.path:'/';
   let hist=[path],hi=0,sel=null;
   const isDbl=mkDbl();
-  win.body.innerHTML=`<div class="ex"><div class="ex-bar"><button data-a="back" title="Nazad">${I.back}</button><button data-a="fwd" title="Napred">${I.fwd}</button><button data-a="up" title="Nagore">${I.up}</button><div class="ex-addr"></div><button data-a="refresh" title="Osveži">${I.refresh}</button></div><div class="ex-cmd"><button data-a="newf">${I.plus}<span>Novi folder</span></button><button data-a="newt">${I.plus}<span>Nova datoteka</span></button><button data-a="ren">${I.edit}<span>Preimenuj</span></button><button data-a="del">${I.trash}<span>Obriši</span></button><button data-a="restore" hidden>${I.restart}<span>Vrati</span></button><button data-a="empty" hidden>${I.trash}<span>Isprazni korpu</span></button></div><div class="ex-main"><nav class="ex-side"></nav><div class="ex-list" tabindex="0"></div></div><div class="ex-status"></div></div>`;
+  win.body.innerHTML=`<div class="ex"><div class="ex-bar"><button data-a="back" title="Back">${I.back}</button><button data-a="fwd" title="Forward">${I.fwd}</button><button data-a="up" title="Up">${I.up}</button><div class="ex-addr"></div><button data-a="refresh" title="Refresh">${I.refresh}</button></div><div class="ex-cmd"><button data-a="newf">${I.plus}<span>New folder</span></button><button data-a="newt">${I.plus}<span>New file</span></button><button data-a="ren">${I.edit}<span>Rename</span></button><button data-a="del">${I.trash}<span>Delete</span></button><button data-a="restore" hidden>${I.restart}<span>Restore</span></button><button data-a="empty" hidden>${I.trash}<span>Empty Recycle Bin</span></button></div><div class="ex-main"><nav class="ex-side"></nav><div class="ex-list" tabindex="0"></div></div><div class="ex-status"></div></div>`;
   const root=$('.ex',win.body),addr=$('.ex-addr',root),side=$('.ex-side',root),list=$('.ex-list',root),status=$('.ex-status',root);
-  const SIDE=[['Ovaj računar','/',I.pc],['Radna površina',DESKTOP,I.folder],['Dokumenti',DOCS,I.folder],['Preuzimanja',DOWNL,I.folder],['Slike',PICS,I.folder],['Muzika',MUSIC,I.folder],['Korpa',BIN,I.bin]];
-  const labelOf=p=>p==='/'?'Ovaj računar':baseOf(p);
+  const SIDE=[['This PC','/',I.pc],['Desktop',DESKTOP,I.folder],['Documents',DOCS,I.folder],['Downloads',DOWNL,I.folder],['Pictures',PICS,I.folder],['Music',MUSIC,I.folder],['Recycle Bin',BIN,I.bin]];
+  const labelOf=p=>p==='/'?'This PC':baseOf(p);
   function items(){
     const n=get(path),out=[];if(!n||n.t!=='d')return out;
     for(const k of Object.keys(n.ch)){const p=join(path,k);if(path==='/'&&p===BIN)continue;out.push({name:k,path:p,node:n.ch[k]})}
@@ -867,19 +867,19 @@ function explorerApp(win,opts){
   function render(){
     const n=get(path);if(!n||n.t!=='d'){path='/';hist=['/'];hi=0}
     const bin=path===BIN,isRoot=path==='/';
-    const ps=parts(path);let acc='',crumbs=`<button data-go="/">Ovaj računar</button>`;
+    const ps=parts(path);let acc='',crumbs=`<button data-go="/">This PC</button>`;
     ps.forEach(s=>{acc+='/'+s;crumbs+=`<em>›</em><button data-go="${esc(acc)}">${esc(s)}</button>`});
     addr.innerHTML=crumbs;
     side.innerHTML=SIDE.map(s=>`<button data-go="${esc(s[1])}" class="${s[1]===path?'sel':''}" title="${esc(s[0])}">${s[2]}<span>${esc(s[0])}</span></button>`).join('');
     const its=items();
-    list.innerHTML=`<div class="ex-head"><span>Naziv</span><span>Datum izmene</span><span>Tip</span><span>Veličina</span></div>`+(its.length?its.map(it=>`<div class="row${it.path===sel?' sel':''}" data-p="${esc(it.path)}"><div class="n">${fileIcon(it.node)}<span>${esc(it.name)}</span></div><span>${fmtDate(it.node.d)}</span><span>${esc(kindLabel(it.name,it.node))}</span><span>${sizeLabel(it.node)}</span></div>`).join(''):`<div class="ex-empty">${bin?'Korpa je prazna.':'Ovaj folder je prazan.'}</div>`);
+    list.innerHTML=`<div class="ex-head"><span>Name</span><span>Date modified</span><span>Type</span><span>Size</span></div>`+(its.length?its.map(it=>`<div class="row${it.path===sel?' sel':''}" data-p="${esc(it.path)}"><div class="n">${fileIcon(it.node)}<span>${esc(it.name)}</span></div><span>${fmtDate(it.node.d)}</span><span>${esc(kindLabel(it.name,it.node))}</span><span>${sizeLabel(it.node)}</span></div>`).join(''):`<div class="ex-empty">${bin?'The Recycle Bin is empty.':'This folder is empty.'}</div>`);
     $('[data-a=newf]',root).hidden=isRoot||bin;$('[data-a=newt]',root).hidden=isRoot||bin;
     $('[data-a=restore]',root).hidden=!bin;$('[data-a=empty]',root).hidden=!bin;
     $('[data-a=back]',root).disabled=hi<=0;$('[data-a=fwd]',root).disabled=hi>=hist.length-1;$('[data-a=up]',root).disabled=isRoot;
     updStatus();
-    win.setTitle(labelOf(path)+' – Istraživač');
+    win.setTitle(labelOf(path)+' – File Explorer');
   }
-  function updStatus(){status.textContent=`${items().length} stavki`+(sel?`  •  izabrano: ${baseOf(sel)}`:'')}
+  function updStatus(){status.textContent=`${items().length} ${items().length===1?'item':'items'}`+(sel?`  •  selected: ${baseOf(sel)}`:'')}
   function paintSel(){$$('.row',list).forEach(r=>r.classList.toggle('sel',r.dataset.p===sel));updStatus()}
   function openItem(p){const n=get(p);if(!n)return;if(n.t==='d')go(p);else openPath(p)}
   async function act(a){
@@ -889,8 +889,8 @@ function explorerApp(win,opts){
     else if(a==='refresh')render();
     else if(a==='newf'||a==='newt'){
       if(path==='/'||path===BIN)return;
-      const def=a==='newf'?'Novi folder':'Nova datoteka.txt';
-      const nm=await promptName(a==='newf'?'Novi folder':'Nova datoteka','Naziv:',def);if(!nm)return;
+      const def=a==='newf'?'New folder':'New file.txt';
+      const nm=await promptName(a==='newf'?'New folder':'New file','Name:',def);if(!nm)return;
       if(!get(path)){render();return}
       sel=a==='newf'?makeFolder(path,nm):makeFile(path,nm,'');
     }
@@ -898,7 +898,7 @@ function explorerApp(win,opts){
     else if(a==='del'){if(sel){if(await deletePath(sel))sel=null}}
     else if(a==='restore'){if(sel&&inBin(sel)){restoreFromBin(sel);sel=null}}
     else if(a==='empty'){
-      if(await ask('Isprazni korpu','Trajno obrisati sve stavke iz korpe?','Isprazni',true)){const b=get(BIN);if(b){b.ch=Object.create(null)}sel=null;fsChanged()}
+      if(await ask('Empty Recycle Bin','Permanently delete all items in the Recycle Bin?','Empty',true)){const b=get(BIN);if(b){b.ch=Object.create(null)}sel=null;fsChanged()}
     }
   }
   root.addEventListener('click',e=>{
@@ -918,20 +918,20 @@ function explorerApp(win,opts){
       sel=row.dataset.p;paintSel();
       const p=sel;
       showCtx(e.clientX,e.clientY,inBin(p)?[
-        {l:'Vrati',icon:I.restart,fn:()=>{restoreFromBin(p);sel=null}},
-        {l:'Obriši trajno',icon:I.trash,fn:()=>deletePath(p)}
+        {l:'Restore',icon:I.restart,fn:()=>{restoreFromBin(p);sel=null}},
+        {l:'Delete permanently',icon:I.trash,fn:()=>deletePath(p)}
       ]:[
-        {l:'Otvori',icon:I.open,fn:()=>openItem(p)},{sep:1},
-        {l:'Preimenuj',icon:I.edit,key:'F2',fn:()=>act('ren')},
-        {l:'Obriši',icon:I.trash,key:'Del',fn:()=>act('del')}
+        {l:'Open',icon:I.open,fn:()=>openItem(p)},{sep:1},
+        {l:'Rename',icon:I.edit,key:'F2',fn:()=>act('ren')},
+        {l:'Delete',icon:I.trash,key:'Del',fn:()=>act('del')}
       ]);
     }else{
       sel=null;paintSel();
       const can=path!=='/'&&path!==BIN;
       showCtx(e.clientX,e.clientY,[
-        {l:'Novi folder',icon:I.plus,disabled:!can,fn:()=>act('newf')},
-        {l:'Nova tekstualna datoteka',icon:I.plus,disabled:!can,fn:()=>act('newt')},{sep:1},
-        {l:'Osveži',icon:I.refresh,fn:()=>render()}
+        {l:'New folder',icon:I.plus,disabled:!can,fn:()=>act('newf')},
+        {l:'New text document',icon:I.plus,disabled:!can,fn:()=>act('newt')},{sep:1},
+        {l:'Refresh',icon:I.refresh,fn:()=>render()}
       ]);
     }
   });
@@ -952,14 +952,14 @@ function explorerApp(win,opts){
 /* ---------- apps: Notepad ---------- */
 function notepadApp(win,opts){
   let path=null,dirty=false,wrap=true,fsz=14;
-  win.body.innerHTML=`<div class="np"><div class="np-menu"><button data-m="file">Datoteka</button><button data-m="edit">Uređivanje</button><button data-m="view">Prikaz</button></div><textarea class="np-ta" spellcheck="false" aria-label="Tekst"></textarea><div class="np-st"><span class="np-pos">Red 1, kol. 1</span><span class="np-len">0 znakova</span><span>UTF-8</span></div></div>`;
+  win.body.innerHTML=`<div class="np"><div class="np-menu"><button data-m="file">File</button><button data-m="edit">Edit</button><button data-m="view">View</button></div><textarea class="np-ta" spellcheck="false" aria-label="Text"></textarea><div class="np-st"><span class="np-pos">Ln 1, Col 1</span><span class="np-len">0 characters</span><span>UTF-8</span></div></div>`;
   const ta=$('.np-ta',win.body),pos=$('.np-pos',win.body),len=$('.np-len',win.body);
-  const nameOf=()=>path?baseOf(path):'Bez naslova';
-  const title=()=>win.setTitle(`${dirty?'● ':''}${nameOf()} – Beležnica`);
+  const nameOf=()=>path?baseOf(path):'Untitled';
+  const title=()=>win.setTitle(`${dirty?'● ':''}${nameOf()} – Notepad`);
   function status(){
     const v=ta.value,i=ta.selectionStart||0,before=v.slice(0,i).split('\n');
-    pos.textContent=`Red ${before.length}, kol. ${before[before.length-1].length+1}`;
-    len.textContent=`${v.length} ${v.length===1?'znak':'znakova'}`;
+    pos.textContent=`Ln ${before.length}, Col ${before[before.length-1].length+1}`;
+    len.textContent=`${v.length} ${v.length===1?'character':'characters'}`;
   }
   function load(p){
     const n=get(p);
@@ -970,17 +970,17 @@ function notepadApp(win,opts){
     let p=path;
     if(!p||as){
       const dir=path&&get(dirOf(path))?dirOf(path):DOCS;
-      let nm=await promptName(as?'Sačuvaj kao':'Sačuvaj','Naziv datoteke:',path?baseOf(path):'Bez naslova.txt');
+      let nm=await promptName(as?'Save as':'Save','File name:',path?baseOf(path):'Untitled.txt');
       if(!nm)return false;
       if(!nm.includes('.'))nm+='.txt';
       p=join(dir,nm);
-      if(get(p)&&p!==path){if(!(await ask('Zameni datoteku',`Datoteka „${nm}“ već postoji. Zameniti je?`,'Zameni')))return false}
+      if(get(p)&&p!==path){if(!(await ask('Replace file',`“${nm}” already exists. Do you want to replace it?`,'Replace')))return false}
     }
     writeFile(p,ta.value);path=p;win.docPath=p;dirty=false;title();return true;
   }
   async function confirmLose(){
     if(!dirty)return true;
-    const r=await dialog({title:'Beležnica',msg:`Sačuvati izmene u „${nameOf()}“?`,buttons:[{l:'Otkaži',v:'cancel'},{l:'Ne čuvaj',v:'no'},{l:'Sačuvaj',v:'yes',primary:true}]});
+    const r=await dialog({title:'Notepad',msg:`Do you want to save changes to “${nameOf()}”?`,buttons:[{l:'Cancel',v:'cancel'},{l:'Don’t save',v:'no'},{l:'Save',v:'yes',primary:true}]});
     if(r.v==='yes')return await save(false);
     return r.v==='no';
   }
@@ -989,8 +989,8 @@ function notepadApp(win,opts){
   async function openDoc(){
     if(!(await confirmLose()))return;
     const files=walkFiles('/',[],false).filter(f=>f.node.t==='f'&&!inBin(f.path)&&(TEXT_EXT.includes((f.name.split('.').pop()||'').toLowerCase())));
-    if(!files.length){await info('Otvori','Nema tekstualnih datoteka za otvaranje.');return}
-    const p=await choose('Otvori datoteku','Izaberite datoteku:',files.map(f=>({v:f.path,l:f.path})));
+    if(!files.length){await info('Open','There are no text files to open.');return}
+    const p=await choose('Open file','Choose a file:',files.map(f=>({v:f.path,l:f.path})));
     if(p)load(p);
   }
   function setWrap(){ta.wrap=wrap?'soft':'off';ta.style.whiteSpace=wrap?'pre-wrap':'pre'}
@@ -999,14 +999,14 @@ function notepadApp(win,opts){
     const b=e.target.closest('[data-m]');if(!b)return;
     const r=b.getBoundingClientRect(),m=b.dataset.m;
     const menus={
-      file:[{l:'Novo',key:'',fn:newDoc},{l:'Otvori…',fn:openDoc},{l:'Sačuvaj',key:'Ctrl+S',fn:()=>save(false)},{l:'Sačuvaj kao…',fn:()=>save(true)},{sep:1},{l:'Zatvori',fn:()=>closeWin(win)}],
-      edit:[{l:'Izaberi sve',key:'Ctrl+A',fn:()=>{ta.focus();ta.select()}},{l:'Datum i vreme',key:'F5',fn:insertTime}],
-      view:[{l:(wrap?'✓ ':'')+'Prelamanje redova',fn:()=>{wrap=!wrap;setWrap()}},{l:'Povećaj slova',fn:()=>setFont(2)},{l:'Smanji slova',fn:()=>setFont(-2)}]
+      file:[{l:'New',key:'',fn:newDoc},{l:'Open…',fn:openDoc},{l:'Save',key:'Ctrl+S',fn:()=>save(false)},{l:'Save as…',fn:()=>save(true)},{sep:1},{l:'Close',fn:()=>closeWin(win)}],
+      edit:[{l:'Select all',key:'Ctrl+A',fn:()=>{ta.focus();ta.select()}},{l:'Time/Date',key:'F5',fn:insertTime}],
+      view:[{l:(wrap?'✓ ':'')+'Word wrap',fn:()=>{wrap=!wrap;setWrap()}},{l:'Zoom in',fn:()=>setFont(2)},{l:'Zoom out',fn:()=>setFont(-2)}]
     };
     showCtx(r.left,r.bottom+2,menus[m]);
   });
   function insertTime(){
-    const d=new Date(),s=`${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}.`;
+    const d=new Date(),s=`${pad(d.getHours())}:${pad(d.getMinutes())} ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
     const a=ta.selectionStart,b=ta.selectionEnd;
     ta.setRangeText(s,a,b,'end');dirty=true;title();status();
   }
@@ -1028,14 +1028,14 @@ function calcApp(win){
   win.body.innerHTML=`<div class="calc" tabindex="0"><div class="c-hist"></div><div class="c-disp">0</div><div class="c-keys"></div></div>`;
   const root=$('.calc',win.body),hist=$('.c-hist',root),disp=$('.c-disp',root),keys=$('.c-keys',root);
   const SYM={'+':'+','-':'−','*':'×','/':'÷'};
-  const KEYS=[['%','%','fn'],['CE','ce','fn'],['C','c','fn'],['⌫','bs','fn'],['1/x','inv','fn'],['x²','sqr','fn'],['√x','sqrt','fn'],['÷','/','fn'],['7','7','num'],['8','8','num'],['9','9','num'],['×','*','fn'],['4','4','num'],['5','5','num'],['6','6','num'],['−','-','fn'],['1','1','num'],['2','2','num'],['3','3','num'],['+','+','fn'],['±','neg','num'],['0','0','num'],[',','.','num'],['=','=','eq']];
+  const KEYS=[['%','%','fn'],['CE','ce','fn'],['C','c','fn'],['⌫','bs','fn'],['1/x','inv','fn'],['x²','sqr','fn'],['√x','sqrt','fn'],['÷','/','fn'],['7','7','num'],['8','8','num'],['9','9','num'],['×','*','fn'],['4','4','num'],['5','5','num'],['6','6','num'],['−','-','fn'],['1','1','num'],['2','2','num'],['3','3','num'],['+','+','fn'],['±','neg','num'],['0','0','num'],['.','.','num'],['=','=','eq']];
   keys.innerHTML=KEYS.map(k=>`<button class="${k[2]}" data-k="${k[1]}">${k[0]}</button>`).join('');
   let cur='0',acc=null,op=null,fresh=true,err=false,expr='';
   const show=s=>{
-    s=String(s);if(s.includes('e'))return s.replace('.',',');
+    s=String(s);if(s.includes('e'))return s;
     const neg=s.startsWith('-');if(neg)s=s.slice(1);
-    const sp=s.split('.');const i=sp[0].replace(/\B(?=(\d{3})+(?!\d))/g,' ');
-    return (neg?'-':'')+i+(sp.length>1?','+sp[1]:'');
+    const sp=s.split('.');const i=sp[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    return (neg?'-':'')+i+(sp.length>1?'.'+sp[1]:'');
   };
   const fmtNum=r=>{const a=Math.abs(r);return (a>=1e16||(a<1e-9&&r!==0))?r.toExponential(6):String(r)};
   function compute(a,b,o){
@@ -1045,7 +1045,7 @@ function calcApp(win){
     return parseFloat(r.toPrecision(12));
   }
   function reset(){cur='0';acc=null;op=null;fresh=true;err=false;expr=''}
-  function fail(msg){err=true;cur=msg||'Nije moguće deliti nulom';acc=null;op=null;fresh=true;expr='';draw()}
+  function fail(msg){err=true;cur=msg||'Cannot divide by zero';acc=null;op=null;fresh=true;expr='';draw()}
   function draw(){
     hist.textContent=expr;
     disp.textContent=err?cur:show(cur);
@@ -1073,7 +1073,7 @@ function calcApp(win){
     else if(k==='bs'){if(!fresh){cur=cur.slice(0,-1);if(cur===''||cur==='-')cur='0'}}
     else if(k==='neg'){if(cur!=='0')cur=cur.startsWith('-')?cur.slice(1):'-'+cur}
     else if(k==='sqr'){const v=parseFloat(cur);expr=`sqr(${show(cur)})`;cur=fmtNum(parseFloat((v*v).toPrecision(12)));fresh=true}
-    else if(k==='sqrt'){const v=parseFloat(cur);if(v<0)return fail('Nevažeći unos');expr=`√(${show(cur)})`;cur=fmtNum(parseFloat(Math.sqrt(v).toPrecision(12)));fresh=true}
+    else if(k==='sqrt'){const v=parseFloat(cur);if(v<0)return fail('Invalid input');expr=`√(${show(cur)})`;cur=fmtNum(parseFloat(Math.sqrt(v).toPrecision(12)));fresh=true}
     else if(k==='inv'){const v=parseFloat(cur);if(v===0)return fail();expr=`1/(${show(cur)})`;cur=fmtNum(parseFloat((1/v).toPrecision(12)));fresh=true}
     else if(k==='%'){
       if(acc!==null&&op){cur=fmtNum(parseFloat((acc*parseFloat(cur)/100).toPrecision(12)));fresh=false}else{cur='0';fresh=true}
@@ -1099,16 +1099,16 @@ function calcApp(win){
 
 /* ---------- apps: Paint ---------- */
 function paintApp(win,opts){
-  win.body.innerHTML=`<div class="pt"><div class="pt-bar"><div class="pt-tools"></div><div class="pt-colors"></div><div class="pt-opts"><label>Debljina <input type="range" min="1" max="40" value="4" class="pt-size"></label><button class="btn" data-a="undo">Poništi</button><button class="btn" data-a="clear">Očisti</button><button class="btn pri" data-a="save">Sačuvaj</button></div></div><div class="pt-stage"><canvas class="pt-cv" width="960" height="600"></canvas></div></div>`;
+  win.body.innerHTML=`<div class="pt"><div class="pt-bar"><div class="pt-tools"></div><div class="pt-colors"></div><div class="pt-opts"><label>Size <input type="range" min="1" max="40" value="4" class="pt-size"></label><button class="btn" data-a="undo">Undo</button><button class="btn" data-a="clear">Clear</button><button class="btn pri" data-a="save">Save</button></div></div><div class="pt-stage"><canvas class="pt-cv" width="960" height="600"></canvas></div></div>`;
   const cv=$('.pt-cv',win.body),ctx=cv.getContext('2d');
-  if(!ctx){win.body.innerHTML='<div style="padding:30px;color:var(--muted)">Canvas nije podržan u ovom pregledaču.</div>';return}
-  const TOOLS=[['pen','Olovka'],['eraser','Gumica'],['line','Linija'],['rect','Pravougaonik'],['ellipse','Elipsa'],['fill','Kanta']];
+  if(!ctx){win.body.innerHTML='<div style="padding:30px;color:var(--muted)">Canvas isn’t supported in this browser.</div>';return}
+  const TOOLS=[['pen','Pencil'],['eraser','Eraser'],['line','Line'],['rect','Rectangle'],['ellipse','Ellipse'],['fill','Fill']];
   const COLORS=['#000000','#5a5a5a','#9b9b9b','#ffffff','#e53935','#ff7043','#fbc02d','#43a047','#00acc1','#1e88e5','#5e35b1','#d81b60','#6d4c41','#ffd6a5','#a5d6a7','#90caf9'];
   let tool='pen',color=COLORS[0],size=4,drawing=false,last=null,start=null,snap=null,srcPath=opts.path||null;
   const undo=[];
   const tools=$('.pt-tools',win.body),colors=$('.pt-colors',win.body);
   tools.innerHTML=TOOLS.map(t=>`<button data-t="${t[0]}" class="${t[0]===tool?'sel':''}">${t[1]}</button>`).join('');
-  colors.innerHTML=COLORS.map(c=>`<button data-c="${c}" style="background:${c}" class="${c===color?'sel':''}" aria-label="Boja ${c}"></button>`).join('');
+  colors.innerHTML=COLORS.map(c=>`<button data-c="${c}" style="background:${c}" class="${c===color?'sel':''}" aria-label="Color ${c}"></button>`).join('');
   tools.addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;tool=b.dataset.t;$$('button',tools).forEach(x=>x.classList.toggle('sel',x===b))});
   colors.addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;color=b.dataset.c;$$('button',colors).forEach(x=>x.classList.toggle('sel',x===b))});
   $('.pt-size',win.body).addEventListener('input',e=>{size=Number(e.target.value)||1});
@@ -1163,17 +1163,17 @@ function paintApp(win,opts){
     if(b.dataset.a==='undo'){const s=undo.pop();if(s)ctx.putImageData(s,0,0)}
     else if(b.dataset.a==='clear'){pushUndo();blank()}
     else if(b.dataset.a==='save'){
-      const nm=await promptName('Sačuvaj sliku','Naziv slike (biće sačuvana u folderu Slike):',srcPath?baseOf(srcPath):'Crtež.png');
+      const nm=await promptName('Save image','Image name (saved to the Pictures folder):',srcPath?baseOf(srcPath):'Drawing.png');
       if(!nm)return;
       const fin=/\.png$/i.test(nm)?nm:nm+'.png';
-      let url;try{url=cv.toDataURL('image/png')}catch(_){await info('Greška','Slika nije mogla biti sačuvana.');return}
+      let url;try{url=cv.toDataURL('image/png')}catch(_){await info('Error','The image couldn’t be saved.');return}
       const p=join(PICS,fin);
-      if(get(p)&&!(await ask('Zameni sliku',`Slika „${fin}“ već postoji. Zameniti je?`,'Zameni')))return;
+      if(get(p)&&!(await ask('Replace image',`“${fin}” already exists. Do you want to replace it?`,'Replace')))return;
       writeFile(p,url,'image/png');srcPath=p;win.setTitle(fin+' – Paint');
-      notify('Slika sačuvana',`Sačuvano u folderu Slike kao ${fin}.`,I.paint);
+      notify('Image saved',`Saved to the Pictures folder as ${fin}.`,I.paint);
     }
   });
-  win.setTitle((srcPath?baseOf(srcPath):'Bez naslova')+' – Paint');
+  win.setTitle((srcPath?baseOf(srcPath):'Untitled')+' – Paint');
   if(srcPath){
     const n=get(srcPath);
     if(n&&n.t==='f'&&typeof n.c==='string'){
@@ -1190,7 +1190,7 @@ function paintApp(win,opts){
 
 /* ---------- apps: Terminal ---------- */
 function terminalApp(win){
-  win.body.innerHTML=`<div class="tm"><div class="tm-out"></div><div class="tm-line"><span class="tm-ps"></span><input class="tm-in" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Komanda"></div></div>`;
+  win.body.innerHTML=`<div class="tm"><div class="tm-out"></div><div class="tm-line"><span class="tm-ps"></span><input class="tm-in" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Command"></div></div>`;
   const root=$('.tm',win.body),out=$('.tm-out',root),inp=$('.tm-in',root),ps=$('.tm-ps',root);
   let cwd='/';const hist=[];let hp=0;
   const print=(t,cls)=>{const d=el('div','tm-l'+(cls?' '+cls:''));d.textContent=t;out.append(d);out.scrollTop=out.scrollHeight};
@@ -1210,87 +1210,87 @@ function terminalApp(win){
     const path='/'+base.join('/');
     return {path,node:get(path)};
   }
-  const APPN={explorer:'explorer',istrazivac:'explorer',notepad:'notepad',beleznica:'notepad',calc:'calc',kalkulator:'calc',paint:'paint',terminal:'terminal',cmd:'terminal',settings:'settings',podesavanja:'settings'};
+  const APPN={explorer:'explorer',notepad:'notepad',calc:'calc',calculator:'calc',paint:'paint',mspaint:'paint',terminal:'terminal',cmd:'terminal',settings:'settings'};
   const CMDS={
-    help(){['Dostupne komande:','  help            ova lista','  dir | ls        prikaz sadržaja foldera','  cd <putanja>    promena foldera','  type | cat <f>  prikaz datoteke','  echo <tekst>    ispis teksta (echo tekst > datoteka upisuje u fajl)','  mkdir <naziv>   novi folder','  touch <naziv>   nova prazna datoteka','  del | rm <naz>  premesti u korpu','  open <putanja>  otvori u odgovarajućoj aplikaciji','  start <app>     pokreni aplikaciju (notepad, calc, paint, explorer, settings)','  cls | clear     očisti ekran','  date | time     datum i vreme','  whoami | ver    informacije o sistemu','  neofetch        sažetak sistema','  exit            zatvori terminal'].forEach(l=>print(l,'dim'))},
+    help(){['Available commands:','  help            this list','  dir | ls        list folder contents','  cd <path>       change folder','  type | cat <f>  show a file','  echo <text>     print text (echo text > file writes to a file)','  mkdir <name>    new folder','  touch <name>    new empty file','  del | rm <name> move to Recycle Bin','  open <path>     open in the matching app','  start <app>     launch an app (notepad, calc, paint, explorer, settings)','  cls | clear     clear the screen','  date | time     date and time','  whoami | ver    system info','  neofetch        system summary','  exit            close the terminal'].forEach(l=>print(l,'dim'))},
     dir(a){
       const r=a[0]?resolveP(a[0]):{path:cwd,node:get(cwd)};
-      if(!r.node||r.node.t!=='d')return print('Sistem ne može da pronađe navedenu putanju.','err');
+      if(!r.node||r.node.t!=='d')return print('The system cannot find the path specified.','err');
       const ks=Object.keys(r.node.ch);
-      if(!ks.length)return print('(prazno)','dim');
+      if(!ks.length)return print('(empty)','dim');
       ks.sort((x,y)=>(r.node.ch[x].t===r.node.ch[y].t?0:r.node.ch[x].t==='d'?-1:1)||x.localeCompare(y,'sr'));
       ks.forEach(k=>{const n=r.node.ch[k];print(`${fmtDate(n.d)}  ${n.t==='d'?'<DIR>':'     '}  ${(n.t==='d'?'':sizeLabel(n)).padStart(8)}  ${k}`)});
     },
     cd(a){
       if(!a[0])return print(prompt().slice(0,-1));
       const r=resolveP(a.join(' '));
-      if(!r.node||r.node.t!=='d')return print('Sistem ne može da pronađe navedenu putanju.','err');
+      if(!r.node||r.node.t!=='d')return print('The system cannot find the path specified.','err');
       cwd=r.path;setPs();
     },
     type(a){
-      if(!a[0])return print('Upotreba: type <datoteka>','err');
+      if(!a[0])return print('Usage: type <file>','err');
       const r=resolveP(a.join(' '));
-      if(!r.node)return print('Datoteka nije pronađena.','err');
-      if(r.node.t==='d')return print('Pristup odbijen: ovo je folder.','err');
-      if(r.node.m&&r.node.m.startsWith('image/'))return print('(binarna slika)','dim');
+      if(!r.node)return print('File not found.','err');
+      if(r.node.t==='d')return print('Access denied: this is a folder.','err');
+      if(r.node.m&&r.node.m.startsWith('image/'))return print('(binary image)','dim');
       String(r.node.c).split('\n').forEach(l=>print(l));
     },
     echo(a){
       const full=a.join(' '),gi=full.indexOf('>');
       if(gi<0)return print(full);
       const text=full.slice(0,gi).trim(),target=full.slice(gi+1).trim();
-      if(!validName(baseOf(resolveP(target).path)))return print('Nevažeće ime datoteke.','err');
+      if(!validName(baseOf(resolveP(target).path)))return print('Invalid file name.','err');
       const r=resolveP(target),pd=get(dirOf(r.path));
-      if(!pd||pd.t!=='d'||r.path==='/')return print('Putanja ne postoji.','err');
-      writeFile(r.path,text+'\n');print('Upisano.','ok');
+      if(!pd||pd.t!=='d'||r.path==='/')return print('Path does not exist.','err');
+      writeFile(r.path,text+'\n');print('Written.','ok');
     },
     mkdir(a){
-      const nm=validName(a.join(' '));if(!nm)return print('Upotreba: mkdir <naziv>','err');
-      if(cwd==='/')return print('Otvorite folder pre kreiranja.','err');
-      if(get(join(cwd,nm)))return print('Već postoji.','err');
+      const nm=validName(a.join(' '));if(!nm)return print('Usage: mkdir <name>','err');
+      if(cwd==='/')return print('Open a folder before creating items.','err');
+      if(get(join(cwd,nm)))return print('Already exists.','err');
       makeFolder(cwd,nm);
     },
     touch(a){
-      const nm=validName(a.join(' '));if(!nm)return print('Upotreba: touch <naziv>','err');
-      if(cwd==='/')return print('Otvorite folder pre kreiranja.','err');
-      if(get(join(cwd,nm)))return print('Već postoji.','err');
+      const nm=validName(a.join(' '));if(!nm)return print('Usage: touch <name>','err');
+      if(cwd==='/')return print('Open a folder before creating items.','err');
+      if(get(join(cwd,nm)))return print('Already exists.','err');
       makeFile(cwd,nm,'');
     },
     del(a){
-      if(!a[0])return print('Upotreba: del <naziv>','err');
+      if(!a[0])return print('Usage: del <name>','err');
       const r=resolveP(a.join(' '));
-      if(!r.node)return print('Stavka nije pronađena.','err');
-      if(protectedPath(r.path))return print('Sistemski folder se ne može obrisati.','err');
+      if(!r.node)return print('Item not found.','err');
+      if(protectedPath(r.path))return print('A system folder can’t be deleted.','err');
       if(inBin(r.path)){removeNode(r.path);fsChanged()}else moveToBin(r.path);
-      print('Premešteno u korpu.','ok');
+      print('Moved to Recycle Bin.','ok');
     },
     open(a){
-      if(!a[0])return print('Upotreba: open <putanja>','err');
+      if(!a[0])return print('Usage: open <path>','err');
       const r=resolveP(a.join(' '));
-      if(!r.node)return print('Stavka nije pronađena.','err');
+      if(!r.node)return print('Item not found.','err');
       openPath(r.path);
     },
     start(a){
       const id=APPN[norm(a[0]||'')];
-      if(!id)return print('Nepoznata aplikacija. Probajte: notepad, calc, paint, explorer, settings, terminal.','err');
+      if(!id)return print('Unknown app. Try: notepad, calc, paint, explorer, settings, terminal.','err');
       openApp(id,{});
     },
     cls(){out.innerHTML=''},
-    date(){const d=new Date();print(`${DAYS[d.getDay()]}, ${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}.`)},
+    date(){const d=new Date();print(`${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`)},
     time(){const d=new Date();print(`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`)},
-    whoami(){print('windows12\\korisnik')},
-    ver(){print('Microsoft Windows 12 [Verzija 26H2.30000.1] (veb simulacija)')},
-    neofetch(){['        ▄▄▄▄  ▄▄▄▄      korisnik@windows12','        ████  ████      -----------------','        ████  ████      OS: Windows 12 Pro (klon)','        ▀▀▀▀  ▀▀▀▀      Jezgro: Pregledač','        ▄▄▄▄  ▄▄▄▄      Shell: Terminal 1.0','        ████  ████      Rezolucija: '+SW()+'x'+SH(),'        ▀▀▀▀  ▀▀▀▀      Tema: '+(S.theme==='dark'?'Tamna':'Svetla')].forEach(l=>print(l,'ok'))},
+    whoami(){print('windows12\\user')},
+    ver(){print('Microsoft Windows 12 [Version 26H2.30000.1] (web simulation)')},
+    neofetch(){['        ▄▄▄▄  ▄▄▄▄      user@windows12','        ████  ████      -----------------','        ████  ████      OS: Windows 12 Pro (clone)','        ▀▀▀▀  ▀▀▀▀      Kernel: Browser','        ▄▄▄▄  ▄▄▄▄      Shell: Terminal 1.0','        ████  ████      Resolution: '+SW()+'x'+SH(),'        ▀▀▀▀  ▀▀▀▀      Theme: '+(S.theme==='dark'?'Dark':'Light')].forEach(l=>print(l,'ok'))},
     exit(){closeWin(win)}
   };
-  CMDS.ls=CMDS.dir;CMDS.cat=CMDS.type;CMDS.rm=CMDS.del;CMDS.clear=CMDS.cls;CMDS.pomoc=CMDS.help;
+  CMDS.ls=CMDS.dir;CMDS.cat=CMDS.type;CMDS.rm=CMDS.del;CMDS.clear=CMDS.cls;
   function run(line){
     print(prompt()+line,'cmd');
     const t=line.trim();if(!t)return;
     const sp=t.split(/\s+/),cmd=sp[0].toLowerCase(),args=sp.slice(1);
     const f=Object.prototype.hasOwnProperty.call(CMDS,cmd)?CMDS[cmd]:null;
-    if(!f)return print(`'${sp[0]}' nije prepoznata komanda. Ukucajte help za listu komandi.`,'err');
-    try{f(args)}catch(e){print('Greška pri izvršavanju komande.','err');console.error(e)}
+    if(!f)return print(`'${sp[0]}' is not recognized as a command. Type help for a list of commands.`,'err');
+    try{f(args)}catch(e){print('Error while running the command.','err');console.error(e)}
   }
   inp.addEventListener('keydown',e=>{
     if(e.key==='Enter'){const v=inp.value;inp.value='';if(v.trim()){hist.push(v);hp=hist.length}run(v)}
@@ -1300,7 +1300,7 @@ function terminalApp(win){
   });
   root.addEventListener('mousedown',e=>{if(!window.getSelection().toString()&&e.target!==inp)setTimeout(()=>inp.focus({preventScroll:true}),0)});
   win.onFocus=()=>inp.focus({preventScroll:true});
-  print('Microsoft Windows 12 [Verzija 26H2.30000.1]','dim');print('Ukucajte help za listu komandi.','dim');print('');
+  print('Microsoft Windows 12 [Version 26H2.30000.1]','dim');print('Type help for a list of commands.','dim');print('');
   setPs();win.setTitle('Terminal');setTimeout(()=>inp.focus({preventScroll:true}),60);
 }
 
@@ -1308,10 +1308,10 @@ function terminalApp(win){
 function settingsApp(win,opts){
   const sw=k=>`<label class="sw"><input type="checkbox" data-k="${k}"><i></i></label>`;
   const PAGES={
-    sistem:{t:'Sistem',h:()=>`<div class="set-card"><div><b>Osvetljenost</b><small>Podesite svetlinu ekrana</small></div><div class="rg"><input type="range" min="20" max="100" data-k="brightness"></div></div><div class="set-card"><div><b>Noćno svetlo</b><small>Topliji tonovi uveče</small></div>${sw('night')}</div><div class="set-card"><div><b>Jačina zvuka</b><small>Glavna jačina zvuka</small></div><div class="rg"><input type="range" min="0" max="100" data-k="volume"></div></div><div class="set-card"><div><b>Ušteda baterije</b><small>Smanjuje potrošnju energije</small></div>${sw('saver')}</div>`},
-    personal:{t:'Personalizacija',h:()=>`<div class="set-card col"><b>Tema</b><div class="opts"><button class="opt" data-opt="theme" data-val="dark"><div class="th" style="background:linear-gradient(135deg,#1b1d24,#2d313b)"></div>Tamna</button><button class="opt" data-opt="theme" data-val="light"><div class="th" style="background:linear-gradient(135deg,#f5f7fb,#dde3ef)"></div>Svetla</button></div></div><div class="set-card col"><b>Boja isticanja</b><div class="opts">${ACCENTS.map(c=>`<button class="sw-c" data-opt="accent" data-val="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}</div></div><div class="set-card col"><b>Pozadina</b><div class="opts">${Object.keys(WALLS).map(k=>`<button class="opt" data-opt="wall" data-val="${k}"><div class="th" style="background:${WALLS[k].base};position:relative;overflow:hidden"><i style="position:absolute;width:80%;height:60%;left:-10%;bottom:-20%;border-radius:50%;filter:blur(12px);background:${WALLS[k].w1}"></i><i style="position:absolute;width:60%;height:70%;right:-15%;top:-25%;border-radius:50%;filter:blur(12px);background:${WALLS[k].w2}"></i></div>${WALLS[k].n}</button>`).join('')}</div></div><div class="set-card"><div><b>Poravnanje trake zadataka</b><small>Centar ili levo</small></div><div class="seg"><button data-opt="align" data-val="center">Centar</button><button data-opt="align" data-val="left">Levo</button></div></div>`},
-    mreza:{t:'Mreža i Bluetooth',h:()=>`<div class="set-card"><div><b>Wi-Fi</b><small>Bežična mreža (simulacija)</small></div>${sw('wifi')}</div><div class="set-card"><div><b>Bluetooth</b><small>Uparivanje uređaja (simulacija)</small></div>${sw('bt')}</div><div class="set-card"><div><b>Avionski režim</b><small>Isključuje Wi-Fi i Bluetooth</small></div>${sw('air')}</div>`},
-    o:{t:'O sistemu',h:()=>`<div class="set-card col" style="gap:0">${[['Naziv uređaja','WINDOWS12-PC'],['Izdanje','Windows 12 Pro (klon)'],['Verzija','26H2'],['Build','30000.1'],['Tip sistema','Veb simulacija u pregledaču']].map(r=>`<div class="about-row"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('')}</div><p style="color:var(--muted);font-size:12.5px;line-height:1.5">Ovo je nezavisna veb simulacija inspirisana izgledom Windows-a i nije proizvod kompanije Microsoft.</p>`}
+    sistem:{t:'System',h:()=>`<div class="set-card"><div><b>Brightness</b><small>Adjust the screen brightness</small></div><div class="rg"><input type="range" min="20" max="100" data-k="brightness"></div></div><div class="set-card"><div><b>Night light</b><small>Warmer colors in the evening</small></div>${sw('night')}</div><div class="set-card"><div><b>Volume</b><small>Master volume</small></div><div class="rg"><input type="range" min="0" max="100" data-k="volume"></div></div><div class="set-card"><div><b>Battery saver</b><small>Reduces power usage</small></div>${sw('saver')}</div>`},
+    personal:{t:'Personalization',h:()=>`<div class="set-card col"><b>Theme</b><div class="opts"><button class="opt" data-opt="theme" data-val="dark"><div class="th" style="background:linear-gradient(135deg,#1b1d24,#2d313b)"></div>Dark</button><button class="opt" data-opt="theme" data-val="light"><div class="th" style="background:linear-gradient(135deg,#f5f7fb,#dde3ef)"></div>Light</button></div></div><div class="set-card col"><b>Accent color</b><div class="opts">${ACCENTS.map(c=>`<button class="sw-c" data-opt="accent" data-val="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}</div></div><div class="set-card col"><b>Background</b><div class="opts">${Object.keys(WALLS).map(k=>`<button class="opt" data-opt="wall" data-val="${k}"><div class="th" style="background:${WALLS[k].base};position:relative;overflow:hidden"><i style="position:absolute;width:80%;height:60%;left:-10%;bottom:-20%;border-radius:50%;filter:blur(12px);background:${WALLS[k].w1}"></i><i style="position:absolute;width:60%;height:70%;right:-15%;top:-25%;border-radius:50%;filter:blur(12px);background:${WALLS[k].w2}"></i></div>${WALLS[k].n}</button>`).join('')}</div></div><div class="set-card"><div><b>Taskbar alignment</b><small>Center or left</small></div><div class="seg"><button data-opt="align" data-val="center">Center</button><button data-opt="align" data-val="left">Left</button></div></div>`},
+    mreza:{t:'Network & Bluetooth',h:()=>`<div class="set-card"><div><b>Wi-Fi</b><small>Wireless network (simulated)</small></div>${sw('wifi')}</div><div class="set-card"><div><b>Bluetooth</b><small>Pair devices (simulated)</small></div>${sw('bt')}</div><div class="set-card"><div><b>Airplane mode</b><small>Turns off Wi-Fi and Bluetooth</small></div>${sw('air')}</div>`},
+    o:{t:'About',h:()=>`<div class="set-card col" style="gap:0">${[['Device name','WINDOWS12-PC'],['Edition','Windows 12 Pro (clone)'],['Version','26H2'],['Build','30000.1'],['System type','Web simulation in the browser']].map(r=>`<div class="about-row"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('')}</div><p style="color:var(--muted);font-size:12.5px;line-height:1.5">This is an independent web simulation inspired by the look of Windows. It is not a Microsoft product.</p>`}
   };
   win.body.innerHTML=`<div class="set"><nav class="set-nav">${Object.keys(PAGES).map(k=>`<button data-page="${k}">${PAGES[k].t}</button>`).join('')}</nav><div class="set-main"></div></div>`;
   const main=$('.set-main',win.body),nav=$('.set-nav',win.body);
@@ -1324,16 +1324,16 @@ function settingsApp(win,opts){
   nav.addEventListener('click',e=>{const b=e.target.closest('[data-page]');if(b)show(b.dataset.page)});
   bindState(main);
   subscribe(()=>syncBind(main),win);
-  win.setTitle('Podešavanja');
+  win.setTitle('Settings');
   show(opts.page||'sistem');
 }
 const APPS={
-  explorer:{id:'explorer',name:'Istraživač',icon:I.folder,w:880,h:540,init:explorerApp},
-  notepad:{id:'notepad',name:'Beležnica',icon:I.notepad,w:640,h:460,init:notepadApp},
-  calc:{id:'calc',name:'Kalkulator',icon:I.calc,w:340,h:540,init:calcApp},
+  explorer:{id:'explorer',name:'File Explorer',icon:I.folder,w:880,h:540,init:explorerApp},
+  notepad:{id:'notepad',name:'Notepad',icon:I.notepad,w:640,h:460,init:notepadApp},
+  calc:{id:'calc',name:'Calculator',icon:I.calc,w:340,h:540,init:calcApp},
   paint:{id:'paint',name:'Paint',icon:I.paint,w:1000,h:660,init:paintApp},
   terminal:{id:'terminal',name:'Terminal',icon:I.terminal,w:720,h:440,init:terminalApp},
-  settings:{id:'settings',name:'Podešavanja',icon:I.settings,w:920,h:600,single:true,init:settingsApp,reopen:(w,o)=>{if(o&&o.page){const b=$(`[data-page="${o.page}"]`,w.body);if(b)b.click()}}}
+  settings:{id:'settings',name:'Settings',icon:I.settings,w:920,h:600,single:true,init:settingsApp,reopen:(w,o)=>{if(o&&o.page){const b=$(`[data-page="${o.page}"]`,w.body);if(b)b.click()}}}
 };
 const PINNED=['explorer','notepad','calc','paint','terminal','settings'];
 
@@ -1362,8 +1362,8 @@ function renderTaskbar(){
       e.preventDefault();
       const r=b.getBoundingClientRect();
       const items=[];
-      if(!app.single||!ws.length)items.push({l:ws.length?'Novi prozor':'Otvori',icon:I.open,fn:()=>openApp(id)});
-      if(ws.length)items.push({l:ws.length>1?'Zatvori sve prozore':'Zatvori prozor',icon:I.close,fn:()=>ws.forEach(w=>closeWin(w))});
+      if(!app.single||!ws.length)items.push({l:ws.length?'New window':'Open',icon:I.open,fn:()=>openApp(id)});
+      if(ws.length)items.push({l:ws.length>1?'Close all windows':'Close window',icon:I.close,fn:()=>ws.forEach(w=>closeWin(w))});
       showCtx(r.left,r.top-6,items,{up:true});
     };
     main.append(b);
@@ -1371,7 +1371,7 @@ function renderTaskbar(){
 }
 function buildTray(){
   const t=$('#tb-tray');
-  t.innerHTML=`<button class="tray-btn tray-sys" id="tray-sys" aria-label="Brza podešavanja"><span class="tic" id="t-wifi">${I.wifi}</span><span class="tic" id="t-vol">${I.vol}</span><span class="tic">${I.battery}</span></button><button class="tray-btn" id="tray-clock" aria-label="Kalendar i obaveštenja"><b id="clk-t">--:--</b><span id="clk-d"></span></button>`;
+  t.innerHTML=`<button class="tray-btn tray-sys" id="tray-sys" aria-label="Quick settings"><span class="tic" id="t-wifi">${I.wifi}</span><span class="tic" id="t-vol">${I.vol}</span><span class="tic">${I.battery}</span></button><button class="tray-btn" id="tray-clock" aria-label="Calendar and notifications"><b id="clk-t">--:--</b><span id="clk-d"></span></button>`;
   $('#tray-sys').onclick=()=>togglePanel('qs');
   $('#tray-clock').onclick=()=>togglePanel('cal');
   const sync=()=>{$('#t-wifi').classList.toggle('dim',!S.wifi);$('#t-vol').classList.toggle('dim',S.volume===0)};
@@ -1379,9 +1379,9 @@ function buildTray(){
 }
 function buildTopbar(){
   const t=$('#topbar');
-  t.innerHTML=`<button class="tw" aria-label="Vreme">${I.cloud}<span>18°C Delimično oblačno</span></button><i class="sep"></i><button class="ts" aria-label="Pretraga">${I.search}<span>Pretraži</span></button>`;
+  t.innerHTML=`<button class="tw" aria-label="Weather">${I.cloud}<span>64°F Partly cloudy</span></button><i class="sep"></i><button class="ts" aria-label="Search">${I.search}<span>Search</span></button>`;
   $('.ts',t).onclick=()=>{openPanel('start');setTimeout(()=>{const q=$('#st-q');if(q)q.focus()},40)};
-  $('.tw',t).onclick=()=>notify('Vreme','Delimično oblačno, 18°C. (Demonstracioni podaci)',I.cloud);
+  $('.tw',t).onclick=()=>notify('Weather','Partly cloudy, 64°F. (Demo data)',I.cloud);
 }
 
 /* ---------- shell: panels ---------- */
@@ -1404,7 +1404,7 @@ const togglePanel=name=>panels[name].classList.contains('open')?closePanels():op
 /* start menu */
 function buildStart(){
   const p=panels.start;
-  p.innerHTML=`<div class="st-search">${I.search}<input id="st-q" placeholder="Pretražite aplikacije, podešavanja i dokumente" autocomplete="off" spellcheck="false" aria-label="Pretraga"></div><div class="st-body"><div id="st-home"><div class="st-h"><span>Prikačeno</span></div><div class="st-grid" id="st-grid"></div><div class="st-h"><span>Preporučeno</span></div><div class="st-rec" id="st-rec"></div></div><div id="st-res" class="st-res" hidden></div></div><div class="st-foot"><button class="st-user"><i>K</i>Korisnik</button><button class="icon-btn" id="st-pw" aria-label="Napajanje">${I.power}</button></div>`;
+  p.innerHTML=`<div class="st-search">${I.search}<input id="st-q" placeholder="Search for apps, settings, and documents" autocomplete="off" spellcheck="false" aria-label="Search"></div><div class="st-body"><div id="st-home"><div class="st-h"><span>Pinned</span></div><div class="st-grid" id="st-grid"></div><div class="st-h"><span>Recommended</span></div><div class="st-rec" id="st-rec"></div></div><div id="st-res" class="st-res" hidden></div></div><div class="st-foot"><button class="st-user"><i>U</i>User</button><button class="icon-btn" id="st-pw" aria-label="Power">${I.power}</button></div>`;
   $('#st-grid').innerHTML=Object.keys(APPS).map(id=>`<button class="st-app" data-app="${id}">${APPS[id].icon}<span>${esc(APPS[id].name)}</span></button>`).join('');
   p.addEventListener('click',e=>{
     const a=e.target.closest('[data-app]');if(a){closePanels();openApp(a.dataset.app,{});return}
@@ -1417,17 +1417,17 @@ function buildStart(){
     e.stopPropagation();
     const r=e.currentTarget.getBoundingClientRect();
     showCtx(r.left,r.top-6,[
-      {l:'Zaključaj',icon:I.lock,fn:()=>powerScreen('lock')},
-      {l:'Spavanje',icon:I.moon,fn:()=>powerScreen('sleep')},
-      {l:'Isključi',icon:I.power,fn:()=>powerScreen('off')},
-      {l:'Restartuj',icon:I.restart,fn:()=>restart()}
+      {l:'Lock',icon:I.lock,fn:()=>powerScreen('lock')},
+      {l:'Sleep',icon:I.moon,fn:()=>powerScreen('sleep')},
+      {l:'Shut down',icon:I.power,fn:()=>powerScreen('off')},
+      {l:'Restart',icon:I.restart,fn:()=>restart()}
     ],{up:true});
   };
 }
 function onStartOpen(){
   const q=$('#st-q');q.value='';doSearch();
   const rec=walkFiles('/',[],true).filter(f=>f.node.t==='f'&&!inBin(f.path)).sort((a,b)=>b.node.d-a.node.d).slice(0,6);
-  $('#st-rec').innerHTML=rec.length?rec.map(f=>`<button class="st-row" data-path="${esc(f.path)}">${fileIcon(f.node)}<div><b>${esc(f.name)}</b><small>${esc(dirOf(f.path)==='/'?'Ovaj računar':baseOf(dirOf(f.path)))}</small></div></button>`).join(''):`<div class="st-empty">Nema skorašnjih datoteka.</div>`;
+  $('#st-rec').innerHTML=rec.length?rec.map(f=>`<button class="st-row" data-path="${esc(f.path)}">${fileIcon(f.node)}<div><b>${esc(f.name)}</b><small>${esc(dirOf(f.path)==='/'?'This PC':baseOf(dirOf(f.path)))}</small></div></button>`).join(''):`<div class="st-empty">No recent files.</div>`;
   setTimeout(()=>{if(panels.start.classList.contains('open'))q.focus({preventScroll:true})},60);
 }
 function doSearch(){
@@ -1437,20 +1437,20 @@ function doSearch(){
   const apps=Object.keys(APPS).filter(id=>norm(APPS[id].name).includes(v));
   const files=walkFiles('/',[],true).filter(f=>!inBin(f.path)&&norm(f.name).includes(v)).slice(0,12);
   let h='';
-  if(apps.length)h+=`<div class="st-h"><span>Aplikacije</span></div>`+apps.map(id=>`<button class="st-row" data-app="${id}">${APPS[id].icon}<div><b>${esc(APPS[id].name)}</b><small>Aplikacija</small></div></button>`).join('');
-  if(files.length)h+=`<div class="st-h"><span>Datoteke i folderi</span></div>`+files.map(f=>`<button class="st-row" data-path="${esc(f.path)}">${fileIcon(f.node)}<div><b>${esc(f.name)}</b><small>${esc(dirOf(f.path))}</small></div></button>`).join('');
-  res.innerHTML=h||`<div class="st-empty">Nema rezultata za „${esc($('#st-q').value.trim())}“.</div>`;
+  if(apps.length)h+=`<div class="st-h"><span>Apps</span></div>`+apps.map(id=>`<button class="st-row" data-app="${id}">${APPS[id].icon}<div><b>${esc(APPS[id].name)}</b><small>App</small></div></button>`).join('');
+  if(files.length)h+=`<div class="st-h"><span>Files and folders</span></div>`+files.map(f=>`<button class="st-row" data-path="${esc(f.path)}">${fileIcon(f.node)}<div><b>${esc(f.name)}</b><small>${esc(dirOf(f.path))}</small></div></button>`).join('');
+  res.innerHTML=h||`<div class="st-empty">No results for “${esc($('#st-q').value.trim())}”.</div>`;
 }
 
 /* quick settings */
 function buildQS(){
   const p=panels.qs;
   const tile=(k,ic,l)=>`<button class="qt" data-toggle="${k}">${ic}<span>${l}</span></button>`;
-  p.innerHTML=`<div class="qs-grid">${tile('wifi',I.wifi,'Wi-Fi')}${tile('bt',I.bt,'Bluetooth')}${tile('air',I.plane,'Avionski režim')}${tile('night',I.moon,'Noćno svetlo')}${tile('theme',I.sun,'Tamni režim')}${tile('saver',I.leaf,'Ušteda baterije')}</div><div class="qs-sl">${I.sun}<input type="range" min="20" max="100" data-k="brightness" aria-label="Osvetljenost"></div><div class="qs-sl">${I.vol}<input type="range" min="0" max="100" data-k="volume" aria-label="Jačina zvuka"></div><div class="qs-foot"><span id="qs-bat">Baterija</span><button class="icon-btn" id="qs-set" aria-label="Podešavanja">${APPS.settings.icon}</button></div>`;
+  p.innerHTML=`<div class="qs-grid">${tile('wifi',I.wifi,'Wi-Fi')}${tile('bt',I.bt,'Bluetooth')}${tile('air',I.plane,'Airplane mode')}${tile('night',I.moon,'Night light')}${tile('theme',I.sun,'Dark mode')}${tile('saver',I.leaf,'Battery saver')}</div><div class="qs-sl">${I.sun}<input type="range" min="20" max="100" data-k="brightness" aria-label="Brightness"></div><div class="qs-sl">${I.vol}<input type="range" min="0" max="100" data-k="volume" aria-label="Volume"></div><div class="qs-foot"><span id="qs-bat">Battery</span><button class="icon-btn" id="qs-set" aria-label="Settings">${APPS.settings.icon}</button></div>`;
   bindState(p);subscribe(()=>syncBind(p));syncBind(p);
   $('#qs-set').onclick=()=>{closePanels();openApp('settings',{})};
   try{
-    if(navigator.getBattery)navigator.getBattery().then(b=>{const u=()=>{const s=$('#qs-bat');if(s)s.textContent='Baterija '+Math.round(b.level*100)+'%'+(b.charging?' (puni se)':'')};u();b.addEventListener('levelchange',u);b.addEventListener('chargingchange',u)}).catch(()=>{});
+    if(navigator.getBattery)navigator.getBattery().then(b=>{const u=()=>{const s=$('#qs-bat');if(s)s.textContent='Battery '+Math.round(b.level*100)+'%'+(b.charging?' (charging)':'')};u();b.addEventListener('levelchange',u);b.addEventListener('chargingchange',u)}).catch(()=>{});
   }catch(e){}
 }
 
@@ -1461,14 +1461,14 @@ function renderCal(){
   const y=calView.getFullYear(),m=calView.getMonth(),today=new Date();
   const off=(new Date(y,m,1).getDay()+6)%7,dim=new Date(y,m+1,0).getDate(),pd=new Date(y,m,0).getDate();
   let cells='';
-  ['Po','Ut','Sr','Če','Pe','Su','Ne'].forEach(d=>cells+=`<span class="wd">${d}</span>`);
+  ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d=>cells+=`<span class="wd">${d}</span>`);
   for(let i=0;i<42;i++){
     const d=i-off+1;
     if(d<1)cells+=`<span class="o">${pd+d}</span>`;
     else if(d>dim)cells+=`<span class="o">${d-dim}</span>`;
     else cells+=`<span class="${(d===today.getDate()&&m===today.getMonth()&&y===today.getFullYear())?'td':''}">${d}</span>`;
   }
-  p.innerHTML=`<div class="nt-h"><span>Obaveštenja</span><button data-a="clear">Obriši sve</button></div>${notes.length?notes.map(n=>`<div class="nt" data-id="${n.id}">${n.icon}<div><b>${esc(n.title)}</b><p>${esc(n.text)}</p></div><small>${pad(n.time.getHours())}:${pad(n.time.getMinutes())}</small><button class="x" data-a="dismiss" aria-label="Ukloni">${I.close}</button></div>`).join(''):`<div class="nt-empty">Nema novih obaveštenja</div>`}<div class="cal-box"><div class="cal-top"><b>${MONTHS[m]} ${y}.</b><div><button data-a="prev" aria-label="Prethodni mesec">${I.back}</button><button data-a="next" aria-label="Sledeći mesec">${I.fwd}</button></div></div><div class="cal-g">${cells}</div></div>`;
+  p.innerHTML=`<div class="nt-h"><span>Notifications</span><button data-a="clear">Clear all</button></div>${notes.length?notes.map(n=>`<div class="nt" data-id="${n.id}">${n.icon}<div><b>${esc(n.title)}</b><p>${esc(n.text)}</p></div><small>${pad(n.time.getHours())}:${pad(n.time.getMinutes())}</small><button class="x" data-a="dismiss" aria-label="Dismiss">${I.close}</button></div>`).join(''):`<div class="nt-empty">No new notifications</div>`}<div class="cal-box"><div class="cal-top"><b>${MONTHS[m]} ${y}</b><div><button data-a="prev" aria-label="Previous month">${I.back}</button><button data-a="next" aria-label="Next month">${I.fwd}</button></div></div><div class="cal-g">${cells}</div></div>`;
 }
 function buildCal(){
   panels.cal.addEventListener('click',e=>{
@@ -1488,8 +1488,8 @@ let desktopSel=null;
 function renderDesktop(){
   const d=$('#desktop');d.innerHTML='';
   const its=[
-    {key:'sys:pc',label:'Ovaj računar',icon:I.pc,open:()=>openApp('explorer',{path:'/'})},
-    {key:'sys:bin',label:'Korpa',icon:I.bin,open:()=>openApp('explorer',{path:BIN})}
+    {key:'sys:pc',label:'This PC',icon:I.pc,open:()=>openApp('explorer',{path:'/'})},
+    {key:'sys:bin',label:'Recycle Bin',icon:I.bin,open:()=>openApp('explorer',{path:BIN})}
   ];
   const dn=get(DESKTOP);
   if(dn)Object.keys(dn.ch).sort((a,b)=>a.localeCompare(b,'sr')).forEach(k=>{
@@ -1506,8 +1506,8 @@ function renderDesktop(){
     };
     b.oncontextmenu=e=>{
       e.preventDefault();e.stopPropagation();desktopSel=it.key;$$('.di',d).forEach(x=>x.classList.toggle('sel',x===b));
-      const m=[{l:'Otvori',icon:I.open,fn:it.open}];
-      if(it.path)m.push({sep:1},{l:'Preimenuj',icon:I.edit,fn:()=>renamePath(it.path)},{l:'Obriši',icon:I.trash,fn:()=>deletePath(it.path)});
+      const m=[{l:'Open',icon:I.open,fn:it.open}];
+      if(it.path)m.push({sep:1},{l:'Rename',icon:I.edit,fn:()=>renamePath(it.path)},{l:'Delete',icon:I.trash,fn:()=>deletePath(it.path)});
       showCtx(e.clientX,e.clientY,m);
     };
     d.append(b);
@@ -1524,12 +1524,12 @@ function initDesktopEvents(){
     if(e.target.closest('.di'))return;
     closePanels();
     showCtx(e.clientX,e.clientY,[
-      {l:'Osveži',icon:I.refresh,fn:renderDesktop},{sep:1},
-      {l:'Novi folder',icon:I.plus,fn:()=>makeFolder(DESKTOP,'Novi folder')},
-      {l:'Nova tekstualna datoteka',icon:I.plus,fn:()=>makeFile(DESKTOP,'Nova datoteka.txt','')},{sep:1},
-      {l:'Personalizuj',icon:I.paint,fn:()=>openApp('settings',{page:'personal'})},
-      {l:'Podešavanja ekrana',icon:I.settings,fn:()=>openApp('settings',{page:'sistem'})},
-      {l:'Otvori terminal',icon:I.terminal,fn:()=>openApp('terminal',{})}
+      {l:'Refresh',icon:I.refresh,fn:renderDesktop},{sep:1},
+      {l:'New folder',icon:I.plus,fn:()=>makeFolder(DESKTOP,'New folder')},
+      {l:'New text document',icon:I.plus,fn:()=>makeFile(DESKTOP,'New file.txt','')},{sep:1},
+      {l:'Personalize',icon:I.paint,fn:()=>openApp('settings',{page:'personal'})},
+      {l:'Display settings',icon:I.settings,fn:()=>openApp('settings',{page:'sistem'})},
+      {l:'Open in Terminal',icon:I.terminal,fn:()=>openApp('terminal',{})}
     ]);
   });
   document.addEventListener('pointerdown',e=>{
@@ -1552,9 +1552,9 @@ function powerScreen(mode){
   off.className='show '+(mode==='lock'?'lock':'dark');
   const d=new Date();
   if(mode==='lock'){
-    c.innerHTML=`<div><div class="big" id="lk-t">${pad(d.getHours())}:${pad(d.getMinutes())}</div><div class="dt" id="lk-d">${DAYS[d.getDay()]}, ${d.getDate()}. ${MONTHS[d.getMonth()]}</div><div class="hint">Kliknite bilo gde da otključate</div></div>`;
+    c.innerHTML=`<div><div class="big" id="lk-t">${pad(d.getHours())}:${pad(d.getMinutes())}</div><div class="dt" id="lk-d">${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}</div><div class="hint">Click anywhere to unlock</div></div>`;
   }else{
-    c.innerHTML=`<div class="hint">${mode==='sleep'?'Računar spava. Kliknite da ga probudite.':'Računar je isključen. Kliknite da ga uključite.'}</div>`;
+    c.innerHTML=`<div class="hint">${mode==='sleep'?'The PC is asleep. Click to wake it.':'The PC is off. Click to turn it on.'}</div>`;
   }
   off.dataset.mode=mode;
 }
@@ -1570,7 +1570,7 @@ function restart(){
   boot(2000);
 }
 function tick(){
-  const d=new Date(),t=`${pad(d.getHours())}:${pad(d.getMinutes())}`,ds=`${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}.`;
+  const d=new Date(),t=`${pad(d.getHours())}:${pad(d.getMinutes())}`,ds=`${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;
   const a=$('#clk-t'),b=$('#clk-d');
   if(a&&a.textContent!==t)a.textContent=t;
   if(b&&b.textContent!==ds)b.textContent=ds;
@@ -1588,7 +1588,7 @@ function init(){
   $('#off').addEventListener('pointerdown',wake);
   tick();setInterval(tick,1000);
   boot(1500);
-  setTimeout(()=>notify('Dobrodošli u Windows 12','Otvorite Start meni da biste pokrenuli aplikacije.',I.win),2400);
+  setTimeout(()=>notify('Welcome to Windows 12','Open the Start menu to launch apps.',I.win),2400);
 }
 init();
 })();

@@ -1,69 +1,77 @@
-# Windows 12 klon
- 
-**Datum:** 11. oktobar 2026. | **Vrijeme:** 18:42
- 
-Veb simulacija operativnog sistema u stilu Windows 12, napravljena kao jedna samostalna HTML stranica. Radi u svakom modernom pregledaču, bez instalacije, servera i spoljnih biblioteka.
- 
-## Kako je nastao
- 
-Ideja i zahtev: **Saša Jovanović**
-Izrada: **Claude** (Anthropic), model Claude Opus 5.5
- 
-Ceo projekat je nastao iz jednog jedinog prompta:
- 
+# Windows 12 Clone
+
+**Date:** 11 October 2026 | **Time:** 19:42
+
+A web simulation of a Windows 12-style operating system, built as a single self-contained HTML page. It runs in any modern browser with no installation, no server, and no external libraries.
+
+## How it was made
+
+Idea and request: **Saša Jovanović**
+Built by: **Claude** (Anthropic), model Claude Opus 5.5
+
+The whole project came from a single prompt, written in Serbian:
+
 > ok sad kreiraj windows 12 klon i da ne pada i nema greske
- 
-Claude je na osnovu toga sam osmislio izgled, napisao kompletan kod (oko 1.600 redova HTML, CSS i JavaScript-a), testirao ga i objavio. Nije bilo dodatnih uputstava, skica ni ručnih ispravki.
- 
-## Pokretanje
- 
-Otvorite `windows12.html` u pregledaču (Chrome, Edge, Firefox ili Safari). To je sve.
- 
-## Šta sadrži
- 
-**Radno okruženje**
-- Plutajuća traka zadataka u sredini (ili levo, po izboru), sa oznakama pokrenutih aplikacija
-- Gornja traka sa vremenskom prognozom i pretragom
-- Ikone na radnoj površini i meni na desni klik
-- Ekran za pokretanje, zaključavanje, spavanje, gašenje i restart
-**Upravljanje prozorima**
-- Prevlačenje, promena veličine sa svih strana, minimizacija, maksimizacija
-- Pripajanje uz ivice: povucite prozor do gornje ivice za ceo ekran, do leve ili desne za pola
-- Dvoklik na naslovnu traku uvećava prozor
-- Na malim ekranima prozori se automatski otvaraju preko celog ekrana
-**Start meni**
-- Prikačene aplikacije i preporučene (skorašnje) datoteke
-- Pretraga aplikacija i fajlova, otporna na kvačice (č, ć, š, ž, đ)
-**Aplikacije**
-- **Istraživač:** navigacija, istorija (nazad/napred), novi folder i datoteka, preimenovanje (F2), brisanje u korpu (Del), vraćanje iz korpe, pražnjenje korpe
-- **Beležnica:** otvaranje, čuvanje (Ctrl+S), „Sačuvaj kao“, prelamanje redova, veličina slova, ubacivanje datuma (F5), upozorenje na nesačuvane izmene
-- **Kalkulator:** osnovne operacije, procenat, kvadrat, koren, 1/x, rad sa tastature, bezbedno deljenje nulom
-- **Paint:** olovka, gumica, linija, pravougaonik, elipsa, kanta za popunjavanje, 16 boja, debljina, poništavanje, čuvanje slike u folder Slike
-- **Terminal:** `help`, `dir`, `cd`, `type`, `echo`, `mkdir`, `touch`, `del`, `open`, `start`, `cls`, `date`, `time`, `ver`, `whoami`, `neofetch`, `exit`, uz istoriju komandi strelicama
-- **Podešavanja:** tamna/svetla tema, 8 boja isticanja, 5 pozadina, poravnanje trake, osvetljenost, zvuk, noćno svetlo, Wi-Fi, Bluetooth, avionski režim
-**Brza podešavanja i kalendar**
-- Prekidači za Wi-Fi, Bluetooth, avionski režim, noćno svetlo, tamni režim i uštedu baterije
-- Klizači za osvetljenost i jačinu zvuka
-- Obaveštenja i kalendar po mesecima
-## Tehničke napomene
- 
-- Jedna datoteka, oko 104 KB, bez spoljnih zavisnosti
-- Sve ikone su ručno pisani SVG, pozadine su CSS gradijenti
-- Fajl sistem postoji samo u memoriji, a podešavanja se pamte u pregledaču (localStorage)
-- Sve aplikacije se pokreću zaštićeno: ako jedna naiđe na problem, ostatak sistema nastavlja da radi
-- Dijalozi su sopstveni, ne koriste `alert` i `prompt` pregledača
-## Testiranje
- 
-Pre objavljivanja kod je proveren na sintaksne greške, a zatim pokrenut u simuliranom pregledaču (jsdom). Test je otvorio svih šest aplikacija, izvršio komande u terminalu, proverio računanje u kalkulatoru (uključujući deljenje nulom i procenat), menjao temu, pozadinu i poravnanje, koristio brza podešavanja, kalendar, meni na desni klik, Istraživač i meni za napajanje. Rezultat: **0 grešaka**.
- 
-Simulirani pregledač ne zamenjuje test u pravom pregledaču, pa su moguće sitne razlike u prikazu.
- 
-## Ograničenja
- 
-- Fajlovi koje napravite nestaju kada zatvorite ili osvežite stranicu
-- Nema pravog interneta ni web pregledača unutar sistema
-- Vremenska prognoza u gornjoj traci je demonstraciona, nije stvarna
-## Pravna napomena
- 
-Ovo je nezavisan, nekomercijalan projekat inspirisan izgledom Windows-a. Nije proizvod kompanije Microsoft niti je sa njom povezan. „Windows“ je zaštićeni znak kompanije Microsoft Corporation.
- 
+
+*(English: "ok, now create a Windows 12 clone, and make it not crash and have no errors")*
+
+From that, Claude designed the look, wrote all the code (about 1,600 lines of HTML, CSS, and JavaScript), tested it, and published it. There were no further instructions, sketches, or manual fixes. The interface was later translated to English at Saša's request.
+
+## Running it
+
+Open `windows12_en.html` in a browser (Chrome, Edge, Firefox, or Safari). That's all.
+
+## Features
+
+**Desktop**
+- Floating taskbar in the center (or on the left, if you prefer), with indicators for running apps
+- Top bar with weather and search
+- Desktop icons and a right-click menu
+- Screens for boot, lock, sleep, shut down, and restart
+
+**Window management**
+- Drag, resize from any edge, minimize, maximize
+- Snap layouts: drag a window to the top edge for full screen, or to the left or right edge for half the screen
+- Double-click the title bar to maximize
+- On small screens, windows open full screen automatically
+
+**Start menu**
+- Pinned apps and recommended (recent) files
+- Search across apps and files, tolerant of accented characters
+
+**Apps**
+- **File Explorer:** navigation, back/forward history, new folder and file, rename (F2), delete to Recycle Bin (Del), restore from the Recycle Bin, empty the Recycle Bin
+- **Notepad:** open, save (Ctrl+S), Save as, word wrap, zoom, insert date and time (F5), warning about unsaved changes
+- **Calculator:** basic operations, percent, square, square root, 1/x, keyboard input, safe division by zero
+- **Paint:** pencil, eraser, line, rectangle, ellipse, fill bucket, 16 colors, brush size, undo, save image to the Pictures folder
+- **Terminal:** `help`, `dir`, `cd`, `type`, `echo`, `mkdir`, `touch`, `del`, `open`, `start`, `cls`, `date`, `time`, `ver`, `whoami`, `neofetch`, `exit`, with command history on the arrow keys
+- **Settings:** dark/light theme, 8 accent colors, 5 backgrounds, taskbar alignment, brightness, volume, night light, Wi-Fi, Bluetooth, airplane mode
+
+**Quick settings and calendar**
+- Toggles for Wi-Fi, Bluetooth, airplane mode, night light, dark mode, and battery saver
+- Sliders for brightness and volume
+- Notifications and a monthly calendar
+
+## Technical notes
+
+- One file, about 104 KB, with no external dependencies
+- All icons are hand-written SVG, and the backgrounds are CSS gradients
+- The file system lives only in memory, and settings are remembered in the browser (localStorage)
+- Every app runs isolated: if one runs into a problem, the rest of the system keeps working
+- Dialogs are custom-built and don't use the browser's `alert` or `prompt`
+
+## Testing
+
+Before publishing, the code was checked for syntax errors and then run in a simulated browser (jsdom). The test opened all six apps, ran commands in the terminal, checked the calculator's math (including division by zero, percent, and number formatting), changed the theme, background, and alignment, and used quick settings, the calendar, the right-click menu, File Explorer, and the power menu. Result: **0 errors**.
+
+A simulated browser is not the same as testing in a real browser, so small differences in how things look are possible.
+
+## Limitations
+
+- Files you create disappear when you close or refresh the page
+- There is no real internet access and no web browser inside the system
+- The weather in the top bar is demo data, not a real forecast
+
+## Legal notice
+
+This is an independent, non-commercial project inspired by the look of Windows. It is not a Microsoft product and is not affiliated with Microsoft. "Windows" is a trademark of Microsoft Corporation.
